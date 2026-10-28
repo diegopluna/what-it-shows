@@ -5,11 +5,11 @@
   import { tenantOf } from '#lib/kb/locales';
   import { splitTicket, type Problem } from '#lib/kb/split';
 
-  // issues: where each problem is filed now, problem → ticket URL.
-  let { ticket, issues = {} }: { ticket: number; issues?: Partial<Record<Problem, string>> } = $props();
+  // issues: where each problem is filed now and where it stands, problem → { url, state }.
+  type Filed = { url: string; state: string };
+  let { ticket, issues = {} }: { ticket: number; issues?: Partial<Record<Problem, Filed>> } = $props();
 
   const split = $derived(splitTicket(reports as Report[], ticket, tenantOf, notes.oneDayMove));
-  const mistagged = $derived(split.groups.reduce((n, g) => n + g.mistagged, 0));
   const channels = (c: Record<string, number>) =>
     Object.entries(c)
       .sort((a, b) => b[1] - a[1])
@@ -31,15 +31,19 @@
   </thead>
   <tbody>
     {#each split.groups as g (g.problem)}
-      <tr class:open={!issues[g.problem]}>
+      {@const filed = issues[g.problem]}
+      <tr class:open={!filed || filed.state === 'open'}>
         <td><code>{g.problem}</code></td>
-        <td><strong>{g.reports.length}</strong></td>
+        <td>
+          <strong>{g.reports.length}</strong>
+          {#if g.shared}<span class="small">({g.shared} also under another problem)</span>{/if}
+        </td>
         <td class="small">{channels(g.channels)}</td>
         <td class="small">{g.tenants.join(', ')}</td>
         <td class="small">{g.firstSeen} → {g.lastSeen}</td>
         <td>
-          {#if issues[g.problem]}
-            <a href={issues[g.problem]}>{issueNo(issues[g.problem]!)}</a>
+          {#if filed}
+            <a href={filed.url}>{issueNo(filed.url)}</a> {filed.state}
           {:else}
             no ticket yet
           {/if}
@@ -50,8 +54,10 @@
 </table>
 
 <p class="note">
-  Intake's tag names another problem than the report's own on <strong>{mistagged}</strong> of {split.merged.length}
-  reports. {split.sharedSubjects.length} subject lines turn up in more than one problem.
+  Each problem counts the reports filed under it, as the desk's own table does: the one-day moves stay
+  under the cause their tenant gives them and count again under <code>shift</code>. Intake's tag names none
+  of a report's problems on <strong>{split.mistagged}</strong> of {split.merged.length} reports.
+  {split.sharedSubjects.length} subject lines turn up in more than one problem.
 </p>
 
 <style>

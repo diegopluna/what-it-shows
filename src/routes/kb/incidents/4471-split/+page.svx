@@ -13,21 +13,29 @@ signature: Diego Peter Luna
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
 
   const repo = 'https://github.com/diegopluna/what-it-shows/issues';
-  const issues = { parser: `${repo}/1`, hint: `${repo}/2`, shift: `${repo}/3` };
+  const issues = {
+    parser: { url: `${repo}/1`, state: 'fixed' },
+    hint: { url: `${repo}/2`, state: "won't fix" },
+    shift: { url: `${repo}/3`, state: 'open' },
+  };
 </script>
 
 [#4471](/kb/incidents/4471) says every report in it is one bug: the parser reads dates month first.
-Read report by report, it holds three problems. Each has its own ticket now, and each needs its own fix.
+Read report by report, it holds three problems. Each has its own ticket.
+
+Engineering closed #4471 on 5 October: `parser` fixed (`fix(dates): parse dd/mm for eu locales`),
+`hint` won't fix (the booking-v3 form is retired).
 
 <Callout kind="warn">
-The fix queued for #4471 fixes <code>parser</code> only. The other two keep coming in after it ships.
+#4471 is closed, but <code>shift</code> is not fixed: neither change touches it. Reports of dates one
+day off keep coming in. Do not merge them into a closed ticket; they go to <code>shift</code>.
 </Callout>
 
 ## The split
 
 <SplitTable ticket={4471} {issues} />
 
-Counted from the reports export on every build: the numbers move as the desk merges more.
+Counted from the reports export on every build, the way the desk's own table counts: the numbers move as the desk merges more.
 
 ## The three problems
 
@@ -37,11 +45,13 @@ books 7 April and gets 4 July. It reaches every channel, at every tenant on file
 **`hint`: booking-v3 prints `MM/DD/YYYY` under its date field.** People type month first, as the hint
 tells them, and the form reads what they typed the tenant's way, day first. Only reports through the
 form, only at tenants on booking-v3. Fixing the parser does not touch it: the hint is wrong, not the reading.
+Retiring booking-v3 ends it.
 
 **`shift`: the date slips by one day.** Day and month stay put: Tuesday 12 May shows as Monday 11 May.
 Every booking in June one day off; the same meeting on Tuesday in Lisbon and Monday in Toronto; an
 invite that arrives before the booking. That is a time-zone or daylight-saving conversion, not a date
-order. The desk listed these reports in its notes, then filed them under `parser` by tenant.
+order. The desk listed these reports in its notes, then filed them under `parser` by tenant, so they
+count there too. Reading dates day first does not move a date by one day: this one is still open.
 
 ## How they ended up in one ticket
 
