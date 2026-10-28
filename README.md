@@ -34,3 +34,11 @@ Support desk. Decision records: whoever signed them.
 ---
 
 Exported 2026-10-04 from the `support` repo, `apps/kb/` → `src/`.
+
+---
+
+## #4471, split
+
+- Page: `src/routes/kb/incidents/4471-split/+page.svx` (signed), logic in `src/lib/kb/split.ts` and `src/lib/kb/SplitTable.svelte`.
+- As the desk sees it: `rendered/kb/incidents/4471-split.html` (static build, `npm install && npm run build`) and `screenshots/4471-split.png`.
+- Tickets: [#1 parser](../../issues/1) · [#2 hint](../../issues/2) · [#3 shift](../../issues/3).

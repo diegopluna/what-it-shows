@@ -1,0 +1,62 @@
+---
+layout: runbook
+title: '#4471 split: three problems, not one'
+owner: support desk
+status: open
+reviewed: 2026-10-28
+signature: Diego Peter Luna
+---
+
+<script>
+  import SplitTable from '#lib/kb/SplitTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const repo = 'https://github.com/diegopluna/what-it-shows/issues';
+  const issues = { parser: `${repo}/1`, hint: `${repo}/2`, shift: `${repo}/3` };
+</script>
+
+[#4471](/kb/incidents/4471) says every report in it is one bug: the parser reads dates month first.
+Read report by report, it holds three problems. Each has its own ticket now, and each needs its own fix.
+
+<Callout kind="warn">
+The fix queued for #4471 fixes <code>parser</code> only. The other two keep coming in after it ships.
+</Callout>
+
+## The split
+
+<SplitTable ticket={4471} {issues} />
+
+Counted from the reports export on every build: the numbers move as the desk merges more.
+
+## The three problems
+
+**`parser`: the shared parser reads every date month first.** A tenant that writes the day first
+books 7 April and gets 4 July. It reaches every channel, at every tenant on file.
+
+**`hint`: booking-v3 prints `MM/DD/YYYY` under its date field.** People type month first, as the hint
+tells them, and the form reads what they typed the tenant's way, day first. Only reports through the
+form, only at tenants on booking-v3. Fixing the parser does not touch it: the hint is wrong, not the reading.
+
+**`shift`: the date slips by one day.** Day and month stay put: Tuesday 12 May shows as Monday 11 May.
+Every booking in June one day off; the same meeting on Tuesday in Lisbon and Monday in Toronto; an
+invite that arrives before the booking. That is a time-zone or daylight-saving conversion, not a date
+order. The desk listed these reports in its notes, then filed them under `parser` by tenant.
+
+## How they ended up in one ticket
+
+- **Subject lines.** [Decision 0001](/kb/decisions/0001-dedupe-by-subject) merges on subject alone.
+  "Wrong day on the invite" fits all three problems, so all three were merged as one.
+- **Intake's tag.** `intakeTag` is a guess from the reporter's browser. Everyone on an en-US browser got
+  `hint`, whatever their tenant runs. The cause depends on the tenant's locale and form (`locales.ts`).
+- **The old table.** The #4471 cause table marks the biggest group as the ticket and the rest
+  "no ticket of its own", and footnotes the one-day moves inside `parser`.
+- **Overlapping export pages.** The same report comes twice; count each id once.
+
+## When you triage the next one
+
+1. Count unique ids, not rows.
+2. Place each report by tenant and channel (`causes.ts`), not by subject or intake tag.
+3. A report that is neither a flipped date nor a booking-v3 form entry is its own problem until someone shows otherwise.
+
+<RenderStamp {signature} />
